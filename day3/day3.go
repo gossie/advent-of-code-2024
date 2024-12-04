@@ -47,7 +47,6 @@ func Part2(filename string) int {
 			res += calculate(content)
 			break
 		}
-		// fmt.Println("found a new don't() at index", nextDont)
 
 		res += calculate(content[:nextDont])
 		content = content[nextDont+7:]
@@ -55,7 +54,6 @@ func Part2(filename string) int {
 		if nextDo == -1 {
 			break
 		}
-		// fmt.Println("found a new don't() at index", nextDo)
 		content = content[nextDo+4:]
 	}
 

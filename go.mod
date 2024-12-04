@@ -1,3 +1,3 @@
 module github.com/gossie/adventofcode2024
 
-go 1.19
+go 1.22

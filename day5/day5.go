@@ -17,15 +17,22 @@ func (r dependencies) addDependency(before, after int) {
 	r[before][after] = true
 }
 
+func (r dependencies) dependentOf(before, after int) bool {
+	if dependentNodes, present := r[before]; present {
+		if _, present := dependentNodes[after]; present {
+			return true
+		}
+	}
+	return false
+}
+
 type update []int
 
 func (u update) valid(rules dependencies) bool {
 	for i := len(u) - 1; i >= 0; i-- {
-		if nodesToBeAfter, present := rules[u[i]]; present {
-			for j := i - 1; j >= 0; j-- {
-				if _, found := nodesToBeAfter[u[j]]; found {
-					return false
-				}
+		for j := i - 1; j >= 0; j-- {
+			if rules.dependentOf(u[i], u[j]) {
+				return false
 			}
 		}
 	}
@@ -34,19 +41,14 @@ func (u update) valid(rules dependencies) bool {
 
 func (u update) sort(rules dependencies) {
 	slices.SortFunc(u, func(a, b int) int {
-		if nodesAfterA, found := rules[a]; found {
-			if _, found := nodesAfterA[b]; found {
-				return -1
-			}
+		switch {
+		case rules.dependentOf(a, b):
+			return -1
+		case rules.dependentOf(b, a):
+			return 1
+		default:
+			return 0
 		}
-
-		if nodesAfterB, found := rules[b]; found {
-			if _, found := nodesAfterB[a]; found {
-				return 1
-			}
-		}
-
-		return 0
 	})
 }
 

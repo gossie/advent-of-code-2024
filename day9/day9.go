@@ -103,8 +103,9 @@ func findLeftMostFittingFreeBlock(fs filesystem, neededSize int) int {
 			continue
 		}
 
-		if fs.freeSizes[fs.blocks[i].id] < neededSize {
-			i += int(math.Max(float64(fs.freeSizes[fs.blocks[i].id]), 1))
+		freeSpace := fs.freeSizes[fs.blocks[i].id]
+		if freeSpace < neededSize {
+			i += int(math.Max(float64(freeSpace), 1))
 			continue
 		}
 
@@ -117,15 +118,19 @@ func rearrangeFilewise(fs filesystem) filesystem {
 	visitedFiles := make(map[int]bool)
 	for i := len(fs.blocks) - 1; i >= 0; i-- {
 		blockId := fs.blocks[i].id
-		if fs.blocks[i].bt == file && !visitedFiles[blockId] {
-			fittingIndex := findLeftMostFittingFreeBlock(fs, fs.fileSizes[blockId])
-			if fittingIndex != -1 && fittingIndex < i {
-				fs.freeSizes[fs.blocks[fittingIndex].id] -= fs.fileSizes[blockId]
-				for j := 0; j < fs.fileSizes[blockId]; j++ {
-					fs.blocks[fittingIndex+j], fs.blocks[i-j] = fs.blocks[i-j], fs.blocks[fittingIndex+j]
+		if fs.blocks[i].bt == file {
+			fileSize := fs.fileSizes[blockId]
+			if !visitedFiles[blockId] {
+				fittingIndex := findLeftMostFittingFreeBlock(fs, fileSize)
+				if fittingIndex != -1 && fittingIndex < i {
+					fs.freeSizes[fs.blocks[fittingIndex].id] -= fileSize
+					for j := 0; j < fileSize; j++ {
+						fs.blocks[fittingIndex+j], fs.blocks[i-j] = fs.blocks[i-j], fs.blocks[fittingIndex+j]
+					}
 				}
+				visitedFiles[blockId] = true
 			}
-			visitedFiles[blockId] = true
+			i -= (fileSize - 1)
 		}
 	}
 	return fs

@@ -95,9 +95,9 @@ func Part1(filename string) int {
 }
 
 func findLeftMostFittingFreeBlock(fs filesystem, neededSize int) int {
-	i, found := 0, false
+	i := 0
 
-	for !found && i < len(fs.blocks) {
+	for i < len(fs.blocks) {
 		if fs.blocks[i].bt == file {
 			i += fs.fileSizes[fs.blocks[i].id]
 			continue
